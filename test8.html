@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Test</title>
+        <script type="text/javascript" src="d3/d3.v3.js"></script>
+
+        <style type="text/css">
+			path {
+                stroke: steelblue;
+                stroke-width: 2;
+                fill: none;
+            }
+             
+            line {
+                stroke: black;
+            }
+             
+            text {
+                font-family: Arial;
+                font-size: 9pt;
+            }
+            #content-explorer {
+        padding-top: 20px;
+        width:100%;
+        line-height:normal;
+        }
+        #content-explorer ul {
+            padding: 10px 10px 0;
+            list-style: none;
+            max-width: 770px;
+            height: 31px;
+            }
+            #content-explorer ul li {
+                float: left;
+                text-align: center;
+                overflow: hidden;
+                margin-left: 5px;
+                }
+                #content-explorer ul li a {
+                    display: block;
+                    padding: 10px 20px 6px 20px;
+                    font-weight: bold;
+                    color: #999;
+                }
+                #content-explorer ul li a:hover {
+                    color: #990000;
+                }
+                #content-explorer ul li.selected a {
+                    padding-bottom: 8px;
+                    color: #990000;
+                }
+            div.yui-content {
+                overflow: auto;
+                border-bottom: 2px solid black;
+                border-right: 2px solid black;
+                border-left: 2px solid black;
+                padding: 20px;
+            }
+		</style>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.0/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.0/build/element/element-beta-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.0/build/connection/connection-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.0/build/tabview/tabview-min.js"></script>
+
+
+    </head>
+    <body>
+        <script type="text/javascript">
+            // Your beautiful D3 code will go here
+
+                                
+            var margin = {top: 30, right: 20, bottom: 30, left: 50},
+                width = 800 - margin.left - margin.right,
+                height = 400 - margin.top - margin.bottom;
+
+            var x = d3.scale.linear().range([0, width]);
+            var y = d3.scale.linear().range([height, 0]);
+
+            var xAxis = d3.svg.axis().scale(x)
+                .orient("bottom").ticks(5);
+
+            var yAxis = d3.svg.axis().scale(y)
+                .orient("left").ticks(5);
+   
+            var svg = d3.select("body")
+                .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                    
+
+            function updateGraphOccurance(obj){
+                
+                
+                //svg.remove(svg.lastChild);
+                                
+                var valueline = d3.svg.line()
+                    .x(function(d) { return x(d.Year); })
+                    .y(function(d) { return y(d.Books); });
+                    
+                        d3.tsv("https://dl.dropboxusercontent.com/u/41024715/top_100_data_h.tsv", function(error, data) {
+                            for(var i = 0; i < data.length; ++i) {
+                            
+                                    data[i].Year = +data[i].Year;
+                                    data[i].Occurrences = +data[i].Ocurrences;
+                                    data[i].Books = +data[i].Books;
+                                    
+                                if(data[i].Gram != obj.Gram) {
+                                   data.splice(i--, 1);
+                                   
+                                }
+                            }
+                            
+                            // Scale the range of the data
+                            x.domain(d3.extent(data, function(d) { return d.Year; }));
+                            y.domain([0, d3.max(data, function(d) { return d.Books; })]);
+                            
+                          
+                            svg.selectAll("path")      // Add the valueline path.
+                                .attr("d", valueline(data));
+                            
+                            
+                            //svg.selectAll("g")         // Add the X Axis
+
+                            svg.append("g")
+                                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                            svg.append("g")
+                                .attr("class", "x axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis);
+                               
+                            svg.append("g")         // Add the Y Axis
+                                .attr("class", "y axis")
+                                .call(yAxis);
+
+                        });
+                    }
+                    
+            function updateGraphData(obj){
+
+                                
+                var valueline = d3.svg.line()
+                    .x(function(d) { return x(d.Year); })
+                    .y(function(d) { return y(d.Books); });
+                    
+                        d3.tsv("https://dl.dropboxusercontent.com/u/41024715/demo_data_h.tsv", function(error, data) {
+                            for(var i = 0; i < data.length; ++i) {
+                            
+                                    data[i].Year = +data[i].Year;
+                                    data[i].Occurrences = +data[i].Ocurrences;
+                                    data[i].Books = +data[i].Books;
+                                    
+                                if(data[i].Gram != obj.Gram) {
+                                   data.splice(i--, 1);
+                                   
+                                }
+                            }
+                            
+                            // Scale the range of the data
+                            x.domain(d3.extent(data, function(d) { return d.Year; }));
+                            y.domain([0, d3.max(data, function(d) { return d.Books; })]);
+                            
+                          
+                            svg.selectAll("path")      // Add the valueline path.
+                                .attr("d", valueline(data));
+
+
+                            svg.append("g")
+                                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                            svg.append("g")
+                                .attr("class", "x axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis);
+                                
+                            svg.append("g")         // Add the Y Axis
+                                .attr("class", "y axis")
+                                .call(yAxis);
+                                
+                        });
+                    }
+
+            function updateGraphBook(obj){
+
+                                
+                var valueline = d3.svg.line()
+                    .x(function(d) { return x(d.Year); })
+                    .y(function(d) { return y(d.Books); });
+                    
+                        d3.tsv("https://dl.dropboxusercontent.com/u/41024715/top_100_data_books_h.tsv", function(error, data) {
+                            for(var i = 0; i < data.length; ++i) {
+                            
+                                    data[i].Year = +data[i].Year;
+                                    data[i].Occurrences = +data[i].Ocurrences;
+                                    data[i].Books = +data[i].Books;
+                                    
+                                if(data[i].Gram != obj.Gram) {
+                                   data.splice(i--, 1);
+                                   
+                                }
+                            }
+                            
+                            // Scale the range of the data
+                            x.domain(d3.extent(data, function(d) { return d.Year; }));
+                            y.domain([0, d3.max(data, function(d) { return d.Books; })]);
+                            
+                          
+                            svg.selectAll("path")      // Add the valueline path.
+                                .attr("d", valueline(data));
+
+
+                            svg.append("g")
+                                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                            svg.append("g")
+                                .attr("class", "x axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis);
+                                
+                            svg.append("g")         // Add the Y Axis
+                                .attr("class", "y axis")
+                                .call(yAxis);
+                                
+                        });
+                    }
+        </script>
+        <script type="text/javascript">
+            var myTabs = new YAHOO.widget.TabView("content-explorer");
+            
+            
+        
+        </script>
+        
+    </body>
+    
+        <div id="content-explorer">
+                
+        <ul class="yui-nav">
+            <li class="selected"><a href="#">Top 100 by Occurance</a></li>
+            <li><a href="#">Demo Grams</a></li>
+            <li><a href="#">Top 100 by Books</a></li>
+        </ul>
+
+        <div class="yui-content">
+            
+            <div>
+                <div id='scroll' style="height:300px;width:1000px;border:1px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;">
+                    <script type="text/javascript">
+                    
+                    //function to work with object from list of top 100, gives object to affect graph
+                    
+                    
+                    function objToString (obj) {
+                        var str = '';
+                        for (var p in obj) {
+                            if (obj.hasOwnProperty(p)) {
+                                str += p + '::' + obj[p] + '\n';
+                            }
+                        }
+                        return str;
+                    }
+                    var datas;
+                        d3.tsv("https://dl.dropboxusercontent.com/u/41024715/top_100_grams_list_h.tsv", function(error, listData) {
+                            listData.forEach(function(d) {
+                                d.Gram = d.Gram;
+                            datas = listData;
+                            
+                            }); 
+                            
+                            for (var c in listData) {
+                                var newElement = document.createElement('div');
+                                newElement.id = listData[c]; newElement.className = "top100";
+                                newElement.innerHTML = JSON.stringify(listData[c]);
+                                document.getElementById('scroll').appendChild(newElement);
+                                (function(c) {
+                                    newElement.addEventListener("click",
+                                        function() {
+                                                updateGraphOccurance(listData[c]);
+                                        }, false);
+                                })(c);
+                            }
+
+                        });
+                    </script>
+                </div>
+                            
+            </div>
+            <div>
+                <div id='scrollDemo' style="height:300px;width:1000px;border:1px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;">
+                    <script type="text/javascript">
+                    
+                    //function to work with object from list of top 100, gives object to affect graph
+                    
+                    
+                    function objToString (obj) {
+                        var str = '';
+                        for (var p in obj) {
+                            if (obj.hasOwnProperty(p)) {
+                                str += p + '::' + obj[p] + '\n';
+                            }
+                        }
+                        return str;
+                    }
+                    var datas;
+                        d3.tsv("https://dl.dropboxusercontent.com/u/41024715/demo_grams.tsv", function(error, listData) {
+                            listData.forEach(function(d) {
+                                d.Gram = d.Gram;
+                            datas = listData;
+                            
+                            }); 
+                            
+                            for (var c in listData) {
+                                var newElement = document.createElement('div');
+                                newElement.id = listData[c]; newElement.className = "top100";
+                                newElement.innerHTML = JSON.stringify(listData[c]);
+                                document.getElementById('scrollDemo').appendChild(newElement);
+                                (function(c) {
+                                    newElement.addEventListener("click",
+                                        function() {
+                                                updateGraphData(listData[c]);
+                                        }, false);
+                                })(c);
+                            }
+
+                        });
+                    </script>
+                </div>
+			</div>
+            <div>
+                <div id='scrollBooks' style="height:300px;width:1000px;border:1px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;">
+                    <script type="text/javascript">
+                    
+                    //function to work with object from list of top 100, gives object to affect graph
+                    
+                    
+                    function objToString (obj) {
+                        var str = '';
+                        for (var p in obj) {
+                            if (obj.hasOwnProperty(p)) {
+                                str += p + '::' + obj[p] + '\n';
+                            }
+                        }
+                        return str;
+                    }
+                    var datas;
+                        d3.tsv("https://dl.dropboxusercontent.com/u/41024715/top_100_grams_books_h.tsv", function(error, listData) {
+                            listData.forEach(function(d) {
+                                d.Gram = d.Gram;
+                            datas = listData;
+                            
+                            }); 
+                            
+                            for (var c in listData) {
+                                var newElement = document.createElement('div');
+                                newElement.id = listData[c]; newElement.className = "top100";
+                                newElement.innerHTML = JSON.stringify(listData[c]);
+                                document.getElementById('scrollBooks').appendChild(newElement);
+                                (function(c) {
+                                    newElement.addEventListener("click",
+                                        function() {
+                                                updateGraphBook(listData[c]);
+                                        }, false);
+                                })(c);
+                            }
+
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style type="text/css" style="display: none !important;">
+        
+    </style>
+</html>

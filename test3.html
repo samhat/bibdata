@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Test</title>
+        <script type="text/javascript" src="d3/d3.v3.js"></script>
+        <style type="text/css">
+			.axis path,
+            .axis line {
+                fill: none;
+                stroke: black;
+                shape-rendering: crispEdges;
+            }
+
+            .axis text {
+                font-family: sans-serif;
+                font-size: 11px;
+            }
+		</style>
+    </head>
+    <body>
+        <script type="text/javascript">
+            // Your beautiful D3 code will go here
+      
+            var dataset = [
+                [1838,2],
+                [1845,1],
+                [1846,1],
+                [1854,2],
+                [1859,3],
+                [1863,1],
+                [1866,2],
+                [1868,1],
+                [1870,1],
+                [1871,2],
+                [1876,1],
+                [1877,6],
+                [1879,4],
+                [1880,1],
+                [1881,3],
+                [1882,1],
+                [1884,2],
+                [1885,1],
+                [1887,5],
+                [1888,2],
+                [1890,2],
+                [1895,1],
+                [1897,3],
+                [1899,2],
+                [1903,2],
+                [1904,1],
+                [1905,2],
+                [1906,2],
+                [1909,1],
+                [1910,2],
+                [1913,2],
+                [1914,2],
+                [1915,1],
+                [1916,3],
+                [1918,1],
+                [1920,2],
+                [1921,1],
+                [1924,2],
+                [1926,1],
+                [1927,4],
+                [1931,1],
+                [1934,1],
+                [1936,1],
+                [1937,4],
+                [1938,1],
+                [1940,2],
+                [1941,1],
+                [1942,1],
+                [1943,2],
+                [1944,1],
+                [1950,1],
+                [1951,3],
+                [1952,2],
+                [1954,7],
+                [1957,1],
+                [1958,1],
+                [1959,1],
+                [1960,1],
+                [1961,1],
+                [1963,1],
+                [1965,1],
+                [1966,3],
+                [1967,5],
+                [1969,2],
+                [1970,2],
+                [1971,1],
+                [1972,1],
+                [1974,6],
+                [1975,1],
+                [1976,5],
+                [1977,3],
+                [1978,2],
+                [1979,3],
+                [1981,4],
+                [1982,4],
+                [1983,3],
+                [1984,3],
+                [1985,4],
+                [1986,4],
+                [1987,3],
+                [1988,2],
+                [1990,4],
+                [1991,3],
+                [1992,6],
+                [1993,3],
+                [1994,3],
+                [1995,3],
+                [1996,4],
+                [1997,3],
+                [1998,4],
+                [1999,6],
+                [2000,4],
+                [2001,4],
+                [2002,4],
+                [2003,7],
+                [2004,14],
+                [2005,8],
+                [2006,13],
+                [2007,13],
+                [2008,8],
+            ];
+            //var numDataPoints = 50;
+            //var xRange = Math.random() * 1000;
+            //var yRange = Math.random() * 1000;
+            //for (var i = 0; i < numDataPoints; i++) {
+            //    var newNumber1 = Math.round(Math.random() * xRange);
+            //    var newNumber2 = Math.round(Math.random() * yRange);
+            //dataset.push([newNumber1, newNumber2],);
+            //}
+                
+            var w = 1000;
+            var h = 600;
+            var barPadding = 1;
+            var padding = 30;
+            
+            //Create SVG element
+            var svg = d3.select("body")
+                .append("svg")
+                .attr("width", w)
+                .attr("height", h);
+                
+            var xScale = d3.scale.linear()
+                     .domain([0, d3.max(dataset, function(d) { return d[0]; })])
+                     .range([padding, w - padding * 2]);
+                     
+            var yScale = d3.scale.linear()
+                     .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+                     .range([h - padding, padding]);
+                     
+            var rScale = d3.scale.linear()
+                     .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+                     .range([2, 5]);
+                     
+            var xAxis = d3.svg.axis()
+                     .scale(xScale)
+                     .orient("bottom")
+                     .ticks(5);
+                     
+            var yAxis = d3.svg.axis()
+                     .scale(yScale)
+                     .orient("left")
+                     .ticks(5);
+                
+            svg.selectAll("circle")
+               .data(dataset)
+               .enter()
+               .append("circle")
+               .attr("cx", function(d) {
+                    return xScale(d[0]);
+               })
+               .attr("cy", function(d) {
+                    return yScale(d[1]);
+               })
+               .attr("r", function(d) {
+                    return rScale(d[1]);
+                });
+               
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(0," + (h - padding) + ")")
+                .call(xAxis);
+                
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + padding + ",0)")
+                .call(yAxis);
+                           
+            
+                
+                
+                
+        </script>
+    </body>
+</html>
