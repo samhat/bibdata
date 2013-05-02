@@ -1,0 +1,137 @@
+Most of our data analysis was done by creating a Hive Interactive jobflow on EMR, 
+then SSH'ing into the master node and running the below Hive queries.
+
+Operations on source data:
+
+Make link to Google Books data
+CREATE EXTERNAL TABLE eng1m_5grams (
+ gram string,
+ year int,
+ occurrences bigint,
+ pages bigint,
+ books bigint
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+STORED AS SEQUENCEFILE
+LOCATION 's3://datasets.elasticmapreduce/ngrams/books/20090715/eng-1m/5gram/data';
+
+Create new table to hold normed data
+CREATE EXTERNAL TABLE eng1m_5grams_normed (
+ gram string,
+ year int,
+ occurrences bigint,
+ pages bigint,
+ books bigint
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+STORED AS SEQUENCEFILE
+LOCATION 's3://samhat-bibdata/source-data/';
+
+Read in data while switching strings to lowercase
+INSERT OVERWRITE TABLE eng1m_5grams_normed
+SELECT
+ lower(gram),
+ year,
+ occurrences,
+ pages,
+ books
+FROM eng1m_5grams
+WHERE year >= 1800;
+(We decided to only consider 1800 onward, since we had seen this convention
+in other uses of Google Ngrams data.)
+
+Consolidate multiple instances of the same lowercased string
+INSERT OVERWRITE TABLE eng1m_5grams_normed
+    > SELECT
+    >  a.gram,
+    >  a.year,
+    >  sum(a.occurrences),
+    >  sum(a.pages),
+    >  sum(a.books)
+    > FROM eng1m_5grams_normed a
+    > GROUP BY
+    >  a.gram, a.year;
+(Note: This query is simplified, because it's not possible in EMR 
+to read and write to the same table. In practice, a temp table must be used 
+to break the process into two steps.)
+
+Finding total counts of each 5-gram:
+
+Create table to store counts
+CREATE EXTERNAL TABLE total_counts (
+    >  gram string,
+    >  occurrences bigint,
+    >  pages bigint,
+    >  books bigint
+    > )
+    > STORED AS SEQUENCEFILE
+    > LOCATION 's3://samhat-bibdata/total-counts/';
+
+Sum counts for all entries of a particular gram
+INSERT OVERWRITE TABLE total_counts
+    > SELECT
+    >  a.gram,
+    >  sum(a.occurrences),
+    >  sum(a.pages),
+    >  sum(a.books)
+    > FROM
+    >  eng1m_5grams_normed
+    >  a
+    > GROUP BY
+    >  a.gram;
+
+Extracting data for top-X grams:
+
+Find top-X grams from total_counts by occurrence count
+(Assuming table top_100_grams has been created)
+INSERT OVERWRITE TABLE top_100_grams
+SELECT
+    >  a.gram as gram,
+    >  a.occurrences as occurrences,
+    > FROM
+    >  total_counts a
+    > WHERE
+    >  gram REGEXP "[A-Za-z]+$"
+    > SORT BY
+    >  occurrences DESC
+    > LIMIT 100;
+
+Extract data for each gram
+(Assuming top_100_data has been created)
+INSERT OVERWRITE TABLE top_100_data
+SELECT 
+ a.gram, 
+ b.year, 
+ b.occurrences, 
+ b.pages, 
+ b.books
+FROM 
+ top_100_grams a 
+JOIN 
+ eng1m_5grams_normed b 
+ON 
+ (a.gram = b.gram)
+SORT BY
+ a.gram ASC, b.year ASC;
+
+Miscellaneous:
+
+To export tables to TSV format (run from command line on Hadoop master node)
+hive -e 'SELECT * FROM top_100_data;' > foo.tsv
+
+To transfer TSV files from local filesystem on Hadoop master node to S3
+s3cmd --configure  (and follow instructions)
+s3cmd put foo.tsv s3://samhat-bibdata/top_100_data/foo.tsv
+
+We tried creating a modified tf-idf metric to filter out uninteresting 5-grams, but never got the weighting correct
+INSERT OVERWRITE TABLE total_counts_gfidf
+SELECT
+ a.gram,
+ log2(1000000 / a.books)	(1000000 represents the "Million Book" database we are using)
+FROM
+ total_counts a;
+
+Reference:
+http://aws.amazon.com/articles/5249664154115844
+http://stackoverflow.com/questions/15110149/hive-not-creating-csv-file-correctly
+Other reference sites like Stack Overflow found on Google
