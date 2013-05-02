@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Test</title>
+        <script type="text/javascript" src="d3/d3.v3.js"></script>
+        <style type="text/css">
+			path {
+                stroke: steelblue;
+                stroke-width: 2;
+                fill: none;
+            }
+             
+            line {
+                stroke: black;
+            }
+             
+            text {
+                font-family: Arial;
+                font-size: 9pt;
+            }
+		</style>
+    </head>
+    <body>
+        <script type="text/javascript">
+            // Your beautiful D3 code will go here
+      
+
+            var dataset = [];
+          
+            d3.csv("https://dl.dropboxusercontent.com/u/41024715/sample_data-csv.csv", function(data) {
+               dataset = data.map(function(d) { return [ +d.year, +d.occurrences ]; });
+               doGraph();
+            });
+                
+            function doGraph() {    
+                var w = 1000;
+                var h = 600;
+                var barPadding = 1;
+                var padding = 30;
+                
+                var x = d3.scale.linear()
+                         .domain([d3.min(dataset, function(d) { return d[0]; }), d3.max(dataset, function(d) { return d[0]; })])
+                         .range([padding, w - padding * 2]);
+                         
+                var y = d3.scale.linear()
+                         .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+                         .range([h - padding, padding]);
+                
+                //Create SVG element
+                var vis = d3.select("body")
+                    .append("svg:svg")
+                    .attr("width", w)
+                    .attr("height", h);
+                    
+                var g = vis.append("svg:g")
+                    .attr("transform", "translate(0,200)");
+                    
+                var line = d3.svg.line()
+                    .x(function(d) { return x(d); })
+                    .y(function(d) { return -1 * y(d); })
+                       
+                g.append("svg:path")
+                    .attr("d", line(dataset));
+                
+                g.append("svg:line")
+                    .attr("x1", x(0))
+                    .attr("y1", -1 * y(0))
+                    .attr("x2", x(0))
+                    .attr("y2", -1 * y(h));
+                    
+                g.append("svg:line")
+                    .attr("x1", x(0))
+                    .attr("y1", - 1 * y(0))
+                    .attr("x2", x(d3.max(dataset, function(d) { return d[0]; })))
+                    .attr("y2", -1 * y(0));
+                    
+            }
+                
+                
+                
+        </script>
+    </body>
+</html>

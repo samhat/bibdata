@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Test</title>
+        <script type="text/javascript" src="d3/d3.v3.js"></script>
+
+        <style type="text/css">
+			path {
+                stroke: steelblue;
+                stroke-width: 2;
+                fill: none;
+            }
+             
+            line {
+                stroke: black;
+            }
+             
+            text {
+                font-family: Arial;
+                font-size: 9pt;
+            }
+            #content-explorer {
+        padding-top: 20px;
+        width:100%;
+        line-height:normal;
+        }
+        #content-explorer ul {
+            padding: 10px 10px 0;
+            list-style: none;
+            max-width: 770px;
+            height: 31px;
+            }
+            #content-explorer ul li {
+                float: left;
+                text-align: center;
+                overflow: hidden;
+                margin-left: 5px;
+                }
+                #content-explorer ul li a {
+                    display: block;
+                    padding: 10px 20px 6px 20px;
+                    font-weight: bold;
+                    color: #999;
+                }
+                #content-explorer ul li a:hover {
+                    color: #990000;
+                }
+                #content-explorer ul li.selected a {
+                    padding-bottom: 8px;
+                    color: #990000;
+                }
+            div.yui-content {
+                overflow: auto;
+                border-bottom: 2px solid black;
+                border-right: 2px solid black;
+                border-left: 2px solid black;
+                padding: 20px;
+            }
+		</style>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.0/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.0/build/element/element-beta-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.0/build/connection/connection-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.0/build/tabview/tabview-min.js"></script>
+
+
+    </head>
+    <body>
+        <script type="text/javascript">
+            // Your beautiful D3 code will go here
+
+                                
+            var margin = {top: 30, right: 20, bottom: 30, left: 50},
+                width = 1000 - margin.left - margin.right,
+                height = 600 - margin.top - margin.bottom;
+
+
+
+            var xAxis = d3.svg.axis().scale(x)
+                .orient("bottom").ticks(5);
+
+            var yAxis = d3.svg.axis().scale(y)
+                .orient("left").ticks(5);
+
+            var vis = d3.select("#chart")
+                .append("svg")
+                .attr("width",width)
+                .attr("height",height); 
+        
+            function updateGraph(obj){
+                
+                
+                //svg.remove(svg.lastChild);
+                
+                var x = d3.scale.linear().range([0, width]);
+                var y = d3.scale.linear().range([height, 0]);
+                
+                var cprog = vis.append("svg:g");
+                
+                var valueline = d3.svg.line()
+                    .x(function(d) { return x(d.Year); })
+                    .y(function(d) { return y(d.Books); });
+                    
+                var chartData = [];
+                
+                chartData.redraw = function(data)
+                {
+                        
+                    d3.tsv("https://dl.dropboxusercontent.com/u/41024715/top_100_data_h.tsv", function(error, data) {
+                            for(var i = 0; i < data.length; ++i) {
+                            
+                                    data[i].Year = +data[i].Year;
+                                    data[i].Occurrences = +data[i].Ocurrences;
+                                    data[i].Books = +data[i].Books;
+                                    
+                                if(data[i].Gram != obj.Gram) {
+                                   data.splice(i--, 1);
+                                   
+                                }
+                            }
+                            
+                        
+                        });
+                    function gotData{
+                        var cpg = cprog.selectAll("path")
+                            .append("svg")
+                            .attr("width", width + margin.left + margin.right)
+                            .attr("height", height + margin.top + margin.bottom)
+                            .append("g")
+                            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                    
+                        x.domain(d3.extent(data, function(d) { return d.Year; }));
+                        y.domain([0, d3.max(data, function(d) { return d.Books; })]);
+                        
+                        cpg.enter()
+                            .append("path")
+                            .attr("d", valueline(data))
+                            .attr("fill","none")
+                            .attr("stroke-width","2")
+                            .attr("stroke","black")
+                            
+                            .append("g")         // Add the X Axis
+                                .attr("class", "x axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis)
+
+                            .append("g")         // Add the Y Axis
+                                .attr("class", "y axis")
+                                .call(yAxis);                 
+                        
+                        cpg.exit().remove();
+                    
+                    
+
+                }
+                chartData.redraw(progress);
+                return chartData;
+                          
+                        
+            }
+
+        </script>
+        <script type="text/javascript">
+            var myTabs = new YAHOO.widget.TabView("content-explorer");
+            
+            
+        
+        </script>
+        
+    </body>
+    
+        <div id="content-explorer">
+                
+        <ul class="yui-nav">
+            <li class="selected"><a href="#">Top 100 Phrases</a></li>
+            <li><a href="#">Selected Phrases</a></li>
+            <li><a href="#">Search</a></li>
+        </ul>
+
+        <div class="yui-content">
+            
+            <div>
+                <div id='scroll' style="height:300px;width:1000px;border:1px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;">
+                    <script type="text/javascript">
+                    
+                    //function to work with object from list of top 100, gives object to affect graph
+                    
+                    
+                    function objToString (obj) {
+                        var str = '';
+                        for (var p in obj) {
+                            if (obj.hasOwnProperty(p)) {
+                                str += p + '::' + obj[p] + '\n';
+                            }
+                        }
+                        return str;
+                    }
+                    var datas;
+                        d3.tsv("https://dl.dropboxusercontent.com/u/41024715/top_100_grams_list_h.tsv", function(error, listData) {
+                            listData.forEach(function(d) {
+                                d.Gram = d.Gram;
+                            datas = listData;
+                            
+                            }); 
+                            
+                            for (var c in listData) {
+                                var newElement = document.createElement('div');
+                                newElement.id = listData[c]; newElement.className = "top100";
+                                newElement.innerHTML = JSON.stringify(listData[c]);
+                                document.getElementById('scroll').appendChild(newElement);
+                                (function(c) {
+                                    newElement.addEventListener("click",
+                                        function() {
+                                                updateGraph(listData[c]);
+                                        }, false);
+                                })(c);
+                            }
+
+                        });
+                    </script>
+                </div>
+                            
+            </div>
+            <div>
+                <h2>Article One</h2>
+                
+                <h2>Article Two</h2>
+			</div>
+            <div>
+                <h2>Search</h2>
+                <p> testing</p>
+            </div>
+        </div>
+    </div>
+    <style type="text/css" style="display: none !important;">
+        
+    </style>
+</html>
